@@ -1,0 +1,164 @@
+{% extends "admin/base.html" %}
+
+{% block title %}数据统计 - 管理后台{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2 class="mb-4">数据统计</h2>
+
+    <!-- 统计卡片 -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-white bg-primary">
+                <div class="card-body">
+                    <h5 class="card-title">总用户数</h5>
+                    <h2 class="card-text">{{ total_users }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-success">
+                <div class="card-body">
+                    <h5 class="card-title">总事件数</h5>
+                    <h2 class="card-text">{{ total_events }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-info">
+                <div class="card-body">
+                    <h5 class="card-title">总评论数</h5>
+                    <h2 class="card-text">{{ total_comments }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-warning">
+                <div class="card-body">
+                    <h5 class="card-title">总点赞数</h5>
+                    <h2 class="card-text">{{ total_likes }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- 最近事件 -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">最近事件</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        {% for event in recent_events %}
+                        <div class="list-group-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">{{ event.title }}</h6>
+                                <small>{{ event.created_at.strftime('%Y-%m-%d') }}</small>
+                            </div>
+                            <p class="mb-1">{{ event.description[:100] }}...</p>
+                            <small>作者: {{ event.author.username }}</small>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 最受欢迎事件 -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">最受欢迎事件</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        {% for event in most_liked_events %}
+                        <div class="list-group-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">{{ event.title }}</h6>
+                                <small>{{ event.likes|length }} 个赞</small>
+                            </div>
+                            <p class="mb-1">{{ event.description[:100] }}...</p>
+                            <small>作者: {{ event.author.username }}</small>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 最活跃用户 -->
+        <div class="col-md-12 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">最活跃用户</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>用户名</th>
+                                    <th>事件数</th>
+                                    <th>评论数</th>
+                                    <th>点赞数</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in most_active_users %}
+                                <tr>
+                                    <td>{{ user.username }}</td>
+                                    <td>{{ user.events|length }}</td>
+                                    <td>{{ user.comments|length }}</td>
+                                    <td>{{ user.likes|length }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 活动趋势图 -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="card-title mb-0">活动趋势</h5>
+    </div>
+    <div class="card-body">
+        <canvas id="activityChart"></canvas>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var ctx = document.getElementById('activityChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['事件', '评论', '点赞', '用户'],
+            datasets: [{
+                label: '总数',
+                data: [{{ total_events }}, {{ total_comments }}, {{ total_likes }}, {{ total_users }}],
+                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

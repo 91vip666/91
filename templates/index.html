@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>7（7）班的猎奇事件</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('index') }}">
+                <i class="bi bi-calendar-event me-2"></i>7（7）班的猎奇事件
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    {% if session.get('user_id') %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('add_event') }}">
+                            <i class="bi bi-plus-circle me-1"></i>添加事件
+                        </a>
+                    </li>
+                    {% if current_user and current_user.is_admin %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('admin_dashboard') }}">
+                            <i class="bi bi-speedometer2 me-1"></i>管理后台
+                        </a>
+                    </li>
+                    {% endif %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('logout') }}">
+                            <i class="bi bi-box-arrow-right me-1"></i>退出登录
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('login') }}">
+                            <i class="bi bi-box-arrow-in-right me-1"></i>登录
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('register') }}">
+                            <i class="bi bi-person-plus me-1"></i>注册
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} animate__animated animate__fadeIn">
+                        {{ message|safe }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- 月份选择器 -->
+        <div class="card mb-4 month-selector animate__animated animate__fadeInDown">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="bi bi-calendar3 me-2"></i>选择月份
+                </h5>
+                <form class="row g-3" method="get" action="{{ url_for('index') }}">
+                    <div class="col-auto">
+                        <select name="month" class="form-select" onchange="this.form.submit()">
+                            {% for month in months %}
+                            <option value="{{ month.number }}" {% if month.selected %}selected{% endif %}>
+                                {{ month.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-auto">
+                        <select name="year" class="form-select" onchange="this.form.submit()">
+                            {% for year in range(2020, 2026) %}
+                            <option value="{{ year }}" {% if year == selected_year %}selected{% endif %}>
+                                {{ year }}年
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- 事件列表 -->
+        {% if events %}
+            {% for event in events %}
+                <div class="card mb-4 animate__animated animate__fadeInUp">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="bi bi-bookmark-star me-2"></i>{{ event.title }}
+                        </h5>
+                        <h6 class="card-subtitle mb-2 text-muted">
+                            <i class="bi bi-calendar2-date me-1"></i>{{ event.date.strftime('%Y-%m-%d') }} | 
+                            <i class="bi bi-person me-1"></i>{{ event.author.username }}
+                        </h6>
+                        <p class="card-text">{{ event.description }}</p>
+                        
+                        <!-- 点赞按钮 -->
+                        {% if session.get('user_id') %}
+                        <button class="btn btn-outline-primary btn-sm like-btn" 
+                                data-event-id="{{ event.id }}"
+                                data-liked="{{ 'true' if event.likes|selectattr('user_id', 'equalto', session.get('user_id'))|list else 'false' }}">
+                            <i class="bi bi-heart{% if event.likes|selectattr('user_id', 'equalto', session.get('user_id'))|list %}-fill{% endif %}"></i>
+                            <span class="like-count">{{ event.likes|length }}</span>
+                        </button>
+                        {% else %}
+                        <button class="btn btn-outline-primary btn-sm" disabled>
+                            <i class="bi bi-heart"></i>
+                            {{ event.likes|length }}
+                        </button>
+                        {% endif %}
+
+                        <!-- 评论区 -->
+                        <div class="comments mt-3">
+                            <h6><i class="bi bi-chat-dots me-2"></i>评论</h6>
+                            {% for comment in event.comments %}
+                            <div class="comment">
+                                <strong><i class="bi bi-person-circle me-1"></i>{{ comment.author.username }}</strong>
+                                <p class="mb-1">{{ comment.content }}</p>
+                                <small class="text-muted">
+                                    <i class="bi bi-clock me-1"></i>{{ comment.created_at.strftime('%Y-%m-%d %H:%M') }}
+                                </small>
+                            </div>
+                            {% endfor %}
+                            
+                            {% if session.get('user_id') %}
+                            <form action="{{ url_for('add_comment', event_id=event.id) }}" method="post" class="mt-2">
+                                <div class="input-group">
+                                    <input type="text" name="content" class="form-control" placeholder="添加评论..." required>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-send me-1"></i>发送
+                                    </button>
+                                </div>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="alert alert-info animate__animated animate__fadeIn">
+                <i class="bi bi-info-circle me-2"></i>当前月份没有事件
+            </div>
+        {% endif %}
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const likeButtons = document.querySelectorAll('.like-btn');
+            likeButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const eventId = this.dataset.eventId;
+                    fetch(`/toggle_like/${eventId}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            this.querySelector('.like-count').textContent = data.likes;
+                            const isLiked = this.dataset.liked === 'true';
+                            this.dataset.liked = (!isLiked).toString();
+                            const icon = this.querySelector('i');
+                            icon.classList.toggle('bi-heart');
+                            icon.classList.toggle('bi-heart-fill');
+                            
+                            // 添加动画效果
+                            icon.classList.add('animate__animated', 'animate__heartBeat');
+                            setTimeout(() => {
+                                icon.classList.remove('animate__animated', 'animate__heartBeat');
+                            }, 1000);
+                        });
+                });
+            });
+        });
+    </script>
+</body>
+</html>
