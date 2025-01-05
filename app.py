@@ -255,8 +255,4 @@ def reject_event(event_id):
     return redirect(url_for('admin_dashboard'))
 
 if __name__ == '__main__':
-    try:
-        print("正在启动应用...")
-        app.run(host='127.0.0.1', port=5000, debug=True)
-    except Exception as e:
-        print(f"启动应用时出错: {str(e)}")
+    app.run()
