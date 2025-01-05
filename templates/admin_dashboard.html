@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>管理员后台 - 事件审核</h2>
+    
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="my-4">
+        <h3>事件统计</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <canvas id="pieChart" width="400" height="400"></canvas>
+            </div>
+            <div>
+                <canvas id="lineChart" width="400" height="400"></canvas>
+            </div>
+        </div>
+    </div>
+
+    {% if events %}
+    <div class="row">
+        {% for event in events %}
+        <div class="col-md-12 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">{{ event.title }}</h5>
+                    <p class="card-text">{{ event.description }}</p>
+                    <p class="text-muted">
+                        提交时间: {{ event.created_at.strftime('%Y-%m-%d %H:%M') }}<br>
+                        事件时间: {{ event.date.strftime('%Y-%m-%d') }}<br>
+                        提交用户: {{ event.author.username }}
+                    </p>
+                    <div class="flex space-x-2">
+                        <a href="{{ url_for('approve_event', event_id=event.id) }}" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">通过</a>
+                        <a href="{{ url_for('reject_event', event_id=event.id) }}" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600" onclick="return confirm('确定要拒绝并删除这个事件吗？')">拒绝</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        目前没有待审核的事件。
+    </div>
+    {% endif %}
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const pieCtx = document.getElementById('pieChart').getContext('2d');
+    const lineCtx = document.getElementById('lineChart').getContext('2d');
+
+    const pieChart = new Chart(pieCtx, {
+        type: 'pie',
+        data: {
+            labels: ['通过', '待审核', '拒绝'],
+            datasets: [{
+                data: [{{ approved_count }}, {{ pending_count }}, {{ rejected_count }}],
+                backgroundColor: ['#4CAF50', '#FFC107', '#F44336']
+            }]
+        }
+    });
+
+    const lineChart = new Chart(lineCtx, {
+        type: 'line',
+        data: {
+            labels: ['一月', '二月', '三月', '四月', '五月', '六月'],
+            datasets: [{
+                label: '事件数量',
+                data: {{ monthly_data | safe }},
+                borderColor: '#2196F3',
+                fill: false
+            }]
+        }
+    });
+</script>
+{% endblock %} 

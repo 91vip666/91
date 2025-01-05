@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>班级重大事件管理系统</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Roboto', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <nav class="bg-blue-600 p-4">
+        <div class="container mx-auto flex justify-between items-center">
+            <a class="text-white text-lg font-bold" href="{{ url_for('index') }}">班级事件管理</a>
+            <div class="flex items-center">
+                <a class="text-white mx-2" href="{{ url_for('index') }}">首页</a>
+                {% if session.get('user_id') %}
+                    <a class="text-white mx-2" href="{{ url_for('add_event') }}">添加事件</a>
+                    {% if session.get('is_admin') %}
+                        <a class="text-white mx-2" href="{{ url_for('admin_dashboard') }}">管理后台</a>
+                    {% endif %}
+                    <a class="text-white mx-2" href="{{ url_for('logout') }}">退出登录</a>
+                {% else %}
+                    <a class="text-white mx-2" href="{{ url_for('login') }}">登录</a>
+                    <a class="text-white mx-2" href="{{ url_for('register') }}">注册</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    {% block content %}{% endblock %}
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"></script>
+</body>
+</html> 
