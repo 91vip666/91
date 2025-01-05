@@ -6,33 +6,100 @@
     <title>班级重大事件管理系统</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
     <style>
-        body { font-family: 'Roboto', sans-serif; }
+        body { 
+            font-family: 'Noto Sans SC', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8eb 100%);
+            min-height: 100vh;
+        }
+        .nav-link {
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        .nav-link:after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -4px;
+            left: 0;
+            background-color: white;
+            transition: width 0.3s ease;
+        }
+        .nav-link:hover:after {
+            width: 100%;
+        }
+        .card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+        .btn {
+            transition: all 0.3s ease;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
-<body class="bg-gray-100">
-    <nav class="bg-blue-600 p-4">
-        <div class="container mx-auto flex justify-between items-center">
-            <a class="text-white text-lg font-bold" href="{{ url_for('index') }}">班级事件管理</a>
-            <div class="flex items-center">
-                <a class="text-white mx-2" href="{{ url_for('index') }}">首页</a>
-                {% if session.get('user_id') %}
-                    <a class="text-white mx-2" href="{{ url_for('add_event') }}">添加事件</a>
-                    {% if session.get('is_admin') %}
-                        <a class="text-white mx-2" href="{{ url_for('admin_dashboard') }}">管理后台</a>
+<body>
+    <nav class="bg-gradient-to-r from-blue-600 to-blue-800 shadow-lg">
+        <div class="container mx-auto px-4 py-3">
+            <div class="flex justify-between items-center">
+                <a class="text-white text-xl font-bold flex items-center space-x-2 hover:text-blue-200 transition-colors duration-300" href="{{ url_for('index') }}">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>班级事件管理</span>
+                </a>
+                <div class="flex items-center space-x-6">
+                    <a class="nav-link text-white hover:text-blue-200" href="{{ url_for('index') }}">
+                        <i class="fas fa-home mr-1"></i> 首页
+                    </a>
+                    {% if session.get('user_id') %}
+                        <a class="nav-link text-white hover:text-blue-200" href="{{ url_for('add_event') }}">
+                            <i class="fas fa-plus-circle mr-1"></i> 添加事件
+                        </a>
+                        {% if session.get('is_admin') %}
+                            <a class="nav-link text-white hover:text-blue-200" href="{{ url_for('admin_dashboard') }}">
+                                <i class="fas fa-cog mr-1"></i> 管理后台
+                            </a>
+                        {% endif %}
+                        <a class="nav-link text-white hover:text-blue-200" href="{{ url_for('logout') }}">
+                            <i class="fas fa-sign-out-alt mr-1"></i> 退出登录
+                        </a>
+                    {% else %}
+                        <a class="nav-link text-white hover:text-blue-200" href="{{ url_for('login') }}">
+                            <i class="fas fa-sign-in-alt mr-1"></i> 登录
+                        </a>
+                        <a class="nav-link text-white hover:text-blue-200" href="{{ url_for('register') }}">
+                            <i class="fas fa-user-plus mr-1"></i> 注册
+                        </a>
                     {% endif %}
-                    <a class="text-white mx-2" href="{{ url_for('logout') }}">退出登录</a>
-                {% else %}
-                    <a class="text-white mx-2" href="{{ url_for('login') }}">登录</a>
-                    <a class="text-white mx-2" href="{{ url_for('register') }}">注册</a>
-                {% endif %}
+                </div>
             </div>
         </div>
     </nav>
 
-    {% block content %}{% endblock %}
+    <main class="container mx-auto px-4 py-8 animate-fade-in">
+        {% block content %}{% endblock %}
+    </main>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"></script>
+    <footer class="bg-gray-800 text-white py-6 mt-auto">
+        <div class="container mx-auto px-4 text-center">
+            <p>© 2024 班级事件管理系统. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/js/all.min.js"></script>
 </body>
 </html> 

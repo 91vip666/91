@@ -1,54 +1,80 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container mt-4">
-    <h2>管理员后台 - 事件审核</h2>
+<div class="bg-white rounded-lg shadow-lg p-6 mb-8 animate-fade-in">
+    <div class="flex items-center mb-6">
+        <i class="fas fa-tachometer-alt text-blue-600 text-2xl mr-3"></i>
+        <h2 class="text-2xl font-bold text-gray-800">管理员后台 - 事件审核</h2>
+    </div>
     
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
             {% for category, message in messages %}
-                <div class="alert alert-{{ category }}">{{ message }}</div>
+                <div class="mb-4 p-4 rounded-lg {% if category == 'success' %}bg-green-100 text-green-700{% elif category == 'danger' %}bg-red-100 text-red-700{% else %}bg-blue-100 text-blue-700{% endif %}">
+                    {{ message }}
+                </div>
             {% endfor %}
         {% endif %}
     {% endwith %}
 
-    <div class="my-4">
-        <h3>事件统计</h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
+    <div class="bg-gray-50 rounded-lg p-6 mb-8">
+        <div class="flex items-center mb-4">
+            <i class="fas fa-chart-pie text-blue-600 text-xl mr-2"></i>
+            <h3 class="text-xl font-semibold text-gray-800">事件统计</h3>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-white rounded-lg shadow p-4">
                 <canvas id="pieChart" width="400" height="400"></canvas>
             </div>
-            <div>
+            <div class="bg-white rounded-lg shadow p-4">
                 <canvas id="lineChart" width="400" height="400"></canvas>
             </div>
         </div>
     </div>
 
     {% if events %}
-    <div class="row">
+    <div class="space-y-6">
         {% for event in events %}
-        <div class="col-md-12 mb-4">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">{{ event.title }}</h5>
-                    <p class="card-text">{{ event.description }}</p>
-                    <p class="text-muted">
-                        提交时间: {{ event.created_at.strftime('%Y-%m-%d %H:%M') }}<br>
-                        事件时间: {{ event.date.strftime('%Y-%m-%d') }}<br>
+        <div class="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
+            <div class="p-6">
+                <div class="flex justify-between items-start mb-4">
+                    <h5 class="text-xl font-semibold text-gray-800">{{ event.title }}</h5>
+                    <span class="text-sm text-gray-500">ID: {{ event.id }}</span>
+                </div>
+                <p class="text-gray-600 mb-4">{{ event.description }}</p>
+                <div class="text-sm text-gray-500 mb-4">
+                    <p class="flex items-center mb-1">
+                        <i class="far fa-clock mr-2"></i>
+                        提交时间: {{ event.created_at.strftime('%Y-%m-%d %H:%M') }}
+                    </p>
+                    <p class="flex items-center mb-1">
+                        <i class="far fa-calendar mr-2"></i>
+                        事件时间: {{ event.date.strftime('%Y-%m-%d') }}
+                    </p>
+                    <p class="flex items-center">
+                        <i class="far fa-user mr-2"></i>
                         提交用户: {{ event.author.username }}
                     </p>
-                    <div class="flex space-x-2">
-                        <a href="{{ url_for('approve_event', event_id=event.id) }}" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">通过</a>
-                        <a href="{{ url_for('reject_event', event_id=event.id) }}" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600" onclick="return confirm('确定要拒绝并删除这个事件吗？')">拒绝</a>
-                    </div>
+                </div>
+                <div class="flex space-x-4">
+                    <a href="{{ url_for('approve_event', event_id=event.id) }}" 
+                       class="btn flex-1 bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg text-center transition-colors duration-300">
+                        <i class="fas fa-check mr-2"></i>通过
+                    </a>
+                    <a href="{{ url_for('reject_event', event_id=event.id) }}" 
+                       class="btn flex-1 bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-lg text-center transition-colors duration-300"
+                       onclick="return confirm('确定要拒绝并删除这个事件吗？')">
+                        <i class="fas fa-times mr-2"></i>拒绝
+                    </a>
                 </div>
             </div>
         </div>
         {% endfor %}
     </div>
     {% else %}
-    <div class="alert alert-info">
-        目前没有待审核的事件。
+    <div class="bg-blue-50 text-blue-700 p-4 rounded-lg flex items-center">
+        <i class="fas fa-info-circle mr-2"></i>
+        <span>目前没有待审核的事件。</span>
     </div>
     {% endif %}
 </div>
@@ -64,8 +90,16 @@
             labels: ['通过', '待审核', '拒绝'],
             datasets: [{
                 data: [{{ approved_count }}, {{ pending_count }}, {{ rejected_count }}],
-                backgroundColor: ['#4CAF50', '#FFC107', '#F44336']
+                backgroundColor: ['#10B981', '#F59E0B', '#EF4444']
             }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
         }
     });
 
@@ -76,9 +110,27 @@
             datasets: [{
                 label: '事件数量',
                 data: {{ monthly_data | safe }},
-                borderColor: '#2196F3',
-                fill: false
+                borderColor: '#3B82F6',
+                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                fill: true,
+                tension: 0.4
             }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            }
         }
     });
 </script>
